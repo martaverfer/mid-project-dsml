@@ -5,8 +5,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# 🤖 Machine Learning
+from sklearn.metrics import ConfusionMatrixDisplay, roc_curve, confusion_matrix
+
 # Define the color palette
 color = '#fcbf49'
+
+# Define the color map
+cmap = 'YlOrBr' 
 
 def distribution_plot(df,nrows,ncols):
     """
@@ -59,7 +65,46 @@ def multicollinearity_heatmap(df):
     f, ax = plt.subplots(figsize=(25, 15))
     sns.set(font_scale=1.5) # increase font size
 
-    ax = sns.heatmap(df, mask=mask, annot=True, annot_kws={"size": 12}, linewidths=.5, cmap="YlOrBr", fmt=".2f", ax=ax) # round to 2 decimal places
+    ax = sns.heatmap(df, mask=mask, annot=True, annot_kws={"size": 12}, linewidths=.5, cmap=cmap, fmt=".2f", ax=ax) # round to 2 decimal places
     ax.set_title("Dealing with Multicollinearity", fontsize=20) # add title
     plt.xticks(rotation=45)
+    plt.show()
+
+def imbalance_data(df, column):
+    """
+    Plots the imbalance data.
+    """
+    sns.countplot(data=df, x=column, palette="YlOrBr")
+    plt.xlabel("Diagnose")
+    plt.title("Imbalance Data")
+
+def confusion_matrix_plot(y_test, y_pred):
+    """
+    Plots the confusion matrix.
+    """
+    # Compute confusion matrix
+    cm = confusion_matrix(y_test, y_pred)
+
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    plt.figure(figsize=(8, 6))
+    disp.plot(cmap=cmap)  
+    plt.grid(True)
+    # Add a title
+    plt.title("Confusion Matrix")
+    plt.show()
+
+def roc_curve_plot(y_test, predictions):
+    """
+    Plots the ROC curve.
+    """
+    # Compute ROC curve
+    fpr, tpr, thresholds = roc_curve(y_test, predictions)
+
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr, tpr, color='orange', lw=2, label='ROC curve')
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic (ROC) Curve')
+    plt.legend(loc="lower right")
+    plt.grid(True)
     plt.show()

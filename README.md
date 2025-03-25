@@ -1,10 +1,10 @@
 # Heart Failure Prediction
 
 ## Overview
-This dataset contains medical records of patients who are at risk of heart failure. It includes various clinical and demographic features that can be used to predict the likelihood of heart failure and, more specifically, whether a patient will experience a **death event** due to heart failure.
+This dataset contains medical records of patients who are at risk of heart disease. It includes various clinical and demographic features that can be used to predict the likelihood of heart disease.
 
 ## Objectives
-- The goal of this project is to use machine learning models to predict the probability of a death event based on the patient's medical records and relevant features. In other words, the model aims to classify whether a patient is at risk of dying from heart failure (a binary classification problem). 
+- The goal of this project is to use machine learning models to predict the probability of a disease event based on the patient's medical records and relevant features. In other words, the model aims to classify whether a patient is at risk of suffering from heart disease (a binary classification problem). 
 - The investigation aims to identify the model that performs best for the dataset, considering factors like model interpretability, scalability, and generalization to new data.
 - The ultimate goal is to enhance early detection, personalized treatment, and resource optimization in healthcare.
 

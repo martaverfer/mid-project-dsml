@@ -4,11 +4,11 @@ import numpy as np
 import os
 
 # 🤖 Machine Learning
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import classification_report 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, log_loss, confusion_matrix, precision_recall_curve, auc
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-
 
 def classification_metrics(X, y, df, random_state, model, standardize=False):
     """
@@ -77,6 +77,30 @@ def test_train_r_analysis(model, X_train, X_test, y_train, y_test):
 
     print("Accuracy train: ", round(train_accuracy, 3))
     print("Accuracy test: ", round(test_accuracy, 3))
+
+
+def model_evaluation(models, preprocessor, smote, X_train, y_train):
+    """
+    Evaluate models using cross-validation and the preprocessing pipeline
+    """
+    folds = [3, 5, 8, 10]  # Number of cross-validation folds
+
+    for fold in folds:
+        print(f"\n📈 Evaluating with {fold}-fold cross-validation:")
+        print()
+        for name, model in models.items():
+            # Create a pipeline that includes both preprocessing and the model
+            pipeline = Pipeline([
+                ('preprocessor', preprocessor),  # Apply preprocessing
+                ('classifier', model)  # Add the classifier
+            ])
+            
+            # Apply SMOTE manually inside the loop during training
+            X_resampled, y_resampled = smote.fit_resample(X_train, y_train)  # Resample the training data
+
+            # Perform cross-validation and evaluate performance
+            scores = cross_val_score(pipeline, X_resampled, y_resampled, cv=fold, scoring='accuracy')  #fold cross-validation
+            print(f"\t{name} Average Accuracy: {scores.mean():.4f} ± {scores.std():.4f}")
 
 def reporting_dataframe(X_test, y_test, model):
     """
