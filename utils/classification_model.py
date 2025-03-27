@@ -1,16 +1,16 @@
 # 📚 Basic libraries
 import pandas as pd
-import numpy as np 
+
+# File system libraries
 import os
+import joblib
 
 # 🤖 Machine Learning
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import classification_report 
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, log_loss, confusion_matrix, precision_recall_curve, auc
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
 
-def classification_metrics(X, y, df, random_state, model, standardize=False):
+def classification_metrics(X, y, df, random_state, model, smote, preprocessor):
     """
     Returns a dataframe with the metrics of the model you have passed as a parameter for different test sizes.
     """
@@ -30,18 +30,19 @@ def classification_metrics(X, y, df, random_state, model, standardize=False):
         print("====================================")
         print()
 
-        if standardize:
-            scaler = StandardScaler()
-            X_train = scaler.fit_transform(X_train)
-            X_test = scaler.transform(X_test)
-        else:
-            pass
+        pipeline = Pipeline([
+                ('preprocessor', preprocessor),  # Apply preprocessing
+                ('classifier', model)  # Add the classifier
+            ])
+            
+        # Apply SMOTE manually inside the loop during training
+        X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
 
         # Train the model
-        model.fit(X_train, y_train)
+        pipeline.fit(X_resampled, y_resampled)
         
         # Make predictions
-        predictions = model.predict(X_test)
+        predictions = pipeline.predict(X_test)
         
         # Compute metrics
         accuracy = accuracy_score(y_test, predictions) 
@@ -62,22 +63,6 @@ def classification_metrics(X, y, df, random_state, model, standardize=False):
 
     # Return the final dataframe containing all results
     return pd.DataFrame(results)
-
-def test_train_r_analysis(model, X_train, X_test, y_train, y_test):
-    """
-    Calculate `accuracy` for training and testing sets
-    """
-    # Predict on the training and testing sets
-    prediction_train = model.predict(X_train)
-    prediction_test = model.predict(X_test)
-        
-    # Calculate R² scores for training and testing
-    train_accuracy= accuracy_score(y_train, prediction_train)
-    test_accuracy= accuracy_score(y_test, prediction_test)
-
-    print("Accuracy train: ", round(train_accuracy, 3))
-    print("Accuracy test: ", round(test_accuracy, 3))
-
 
 def model_evaluation(models, preprocessor, smote, X_train, y_train):
     """
@@ -102,29 +87,56 @@ def model_evaluation(models, preprocessor, smote, X_train, y_train):
             scores = cross_val_score(pipeline, X_resampled, y_resampled, cv=fold, scoring='accuracy')  #fold cross-validation
             print(f"\t{name} Average Accuracy: {scores.mean():.4f} ± {scores.std():.4f}")
 
-def reporting_dataframe(X_test, y_test, model):
+def save_dataframe_to_csv(df, filepath):
     """
-    Returns a dataframe with actual vs. predictions 
-    Evaluates and compares the predicted values of a model with the true values of the dataset
+    Saves the dataframe to a CSV file in the /data folder if the file doesn't already exist.
     """
-
-    # Make predictions
-    predictions = model.predict(X_test)
-    
-    # Create a dataframe to compare
-    eval_df = pd.DataFrame({"actual": y_test, "pred": predictions})
-    eval_df["dif"] = abs(eval_df["actual"]-eval_df["pred"])
-    eval_df.reset_index(drop=True, inplace=True)
-    
-    # Return the final dataframe containing actual vs predictions
-    return eval_df
-
-def save_dataframe_to_pickle(df, filename):
-    """
-    Saves the DataFrame to a pickle file if the file doesn't already exist.
-    """
-    if not os.path.exists(filename):  # Check if the file already exists
-        df.to_pickle(filename)  # Save DataFrame as pickle file
-        print(f"DataFrame saved as {filename}")
+    # Check if the file already exists
+    if not os.path.exists(filepath):
+        # If the file doesn't exist, save the dataframe
+        df.to_csv(filepath, index=False)
+        print(f"File saved as {filepath}")
     else:
-        print(f"{filename} already exists. File not overwritten.")
+        print(f"The file {filepath} already exists. Skipping save.")
+
+def save_model_to_pickle(pipeline, filename):
+    """
+    Saves the classification model (including Pipeline) to a pickle file in the /models folder if the file doesn't already exist.
+    """
+    # Define the path to the models folder
+    models_folder = os.path.join(os.path.dirname(__file__), '..', 'models')
+    
+    # Ensure the models folder exists
+    if not os.path.exists(models_folder):
+        os.makedirs(models_folder)
+    
+    # Define the full path for the pickle file
+    full_path = os.path.join(models_folder, filename)
+    
+    # Check if the file already exists
+    if not os.path.exists(full_path):
+        # Save the model (or pipeline) as a pickle file using joblib
+        joblib.dump(pipeline, full_path)  # Save the model as a pickle file
+        print(f"Model saved as {full_path}")
+    else:
+        print(f"{full_path} already exists. File not overwritten.")
+
+def load_model_from_pickle(filename):
+    """
+    Load a classification model from a pickle file in the /models folder.
+    """
+    # Define the path to the models folder
+    models_folder = os.path.join(os.path.dirname(__file__), '..', 'models')
+    
+    # Define the full path for the pickle file
+    full_path = os.path.join(models_folder, filename)
+    
+    # Check if the file exists
+    if os.path.exists(full_path):
+        # Load the model (pipeline) from the pickle file
+        pipeline = joblib.load(full_path)
+        print(f"Model loaded from {full_path}")
+        return pipeline
+    else:
+        print(f"{full_path} not found. Model not loaded.")
+        return None
