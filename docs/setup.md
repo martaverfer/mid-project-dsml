@@ -5,8 +5,8 @@ To run this project locally, follow these instructions:
 ## 1. **Clone this repository:**
 
 ```bash
-git clone https://github.com/martaverfer/project-data-analysis.git \
-cd python_scripts
+git clone https://github.com/martaverfer/mid-project-dsml.git \
+cd notebooks
 ```
 
 ## 2. **Virtual environment:**
@@ -41,8 +41,16 @@ pip install -r requirements.txt
 ## 4. **Open the Jupyter notebook to explore the analysis:**
 
 ```bash
-cd python_scripts; \
-main.ipynb
+cd nootebooks; \
+eda.ipynb
+improve_models.ipynb
+model_evaluation.ipynb
 ```
 
 This script will execute the analysis steps and produce the results.
+
+## 5. **For Running Streamlit App**
+```bash
+cd app; \
+streamlit run app.py
+```
